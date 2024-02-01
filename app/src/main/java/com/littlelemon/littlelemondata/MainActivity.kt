@@ -12,7 +12,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Delete
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.littlelemon.littlelemondata.ui.theme.LittleLemonDataTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,8 +37,13 @@ class MainActivity : ComponentActivity() {
                     Greeting("Android")
                 }
             }
-
         }
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "database-name"
+        ).build()
+        val playerDao = db.playerDao()
+        val players = playerDao.getAll()
     }
     override fun onStart() {
         super.onStart()
@@ -56,3 +71,37 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
+
+@Entity
+data class Player(
+    @PrimaryKey val id: Int,
+    val name: String,
+    val age: Int,
+)
+@Dao
+interface PlayerDao {
+    @Query("SELECT * FROM player")
+    fun getAll(): List<Player>
+
+    @Insert
+    fun insertAll(vararg players: Player)
+
+    @Delete
+    fun delete(player: Player)
+}
+
+@Database(entities = [Player::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun playerDao(): PlayerDao
+}
+
+
+
+
+
+
+
+
+
+
+
